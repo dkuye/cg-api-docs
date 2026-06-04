@@ -25,6 +25,13 @@
 
   --color-danger-500: #ef4444;
   --color-danger-600: #dc2626;
+
+  /* Custom slate extensions for dark mode compatibility */
+  --color-slate-450: #8899af;
+  --color-slate-505: #707f94;
+  --color-slate-750: #384252;
+  --color-slate-850: #1e293b;
+  --color-slate-905: #0f172a;
 }
 
 /* Custom Scrollbars */

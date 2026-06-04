@@ -723,7 +723,7 @@ watch(swaggerSourceType, () => {
 
           <button
             @click="addGlobalHeader"
-            class="text-xs text-indigo-600 hover:text-indigo-850 font-bold flex items-center gap-1 transition-colors"
+            class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-850 dark:hover:text-indigo-300 font-bold flex items-center gap-1 transition-colors"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
