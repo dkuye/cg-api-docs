@@ -32,11 +32,36 @@ watch(theme, (newTheme) => {
 }, { immediate: true })
 
 // Config & Headers
+const getSavedHeaders = () => {
+  const saved = localStorage.getItem('globalHeaders')
+  if (saved) {
+    try {
+      return JSON.parse(saved)
+    } catch (e) {
+      // fallback
+    }
+  }
+  return [
+    { key: 'Authorization', value: 'Bearer ', enabled: false },
+    { key: 'Content-Type', value: 'application/json', enabled: true }
+  ]
+}
+
 const apiServerUrl = ref<string>('')
-const globalHeaders = ref<{ key: string; value: string; enabled: boolean }[]>([
-  { key: 'Authorization', value: 'Bearer ', enabled: false },
-  { key: 'Content-Type', value: 'application/json', enabled: true }
-])
+const globalHeaders = ref<{ key: string; value: string; enabled: boolean }[]>(getSavedHeaders())
+
+// Persist Global Headers when modified
+watch(globalHeaders, (newHeaders) => {
+  localStorage.setItem('globalHeaders', JSON.stringify(newHeaders))
+}, { deep: true })
+
+function onApiHostInput() {
+  if (!apiServerUrl.value.trim()) {
+    localStorage.removeItem('customApiServerUrl')
+  } else {
+    localStorage.setItem('customApiServerUrl', apiServerUrl.value)
+  }
+}
 
 // Sidebar Filter
 const searchQuery = ref<string>('')
@@ -125,11 +150,16 @@ async function loadSwaggerDoc() {
 function processLoadedDoc(data: any) {
   swaggerDoc.value = data
   
-  // Set default API Server URL from host and basePath
-  const scheme = data.schemes && data.schemes[0] ? `${data.schemes[0]}://` : 'http://'
-  const host = data.host || window.location.host
-  const basePath = data.basePath || ''
-  apiServerUrl.value = `${scheme}${host}${basePath}`
+  // Set default API Server URL from host and basePath if no custom override exists
+  const savedCustomUrl = localStorage.getItem('customApiServerUrl')
+  if (savedCustomUrl) {
+    apiServerUrl.value = savedCustomUrl
+  } else {
+    const scheme = data.schemes && data.schemes[0] ? `${data.schemes[0]}://` : 'http://'
+    const host = data.host || window.location.host
+    const basePath = data.basePath || ''
+    apiServerUrl.value = `${scheme}${host}${basePath}`
+  }
 
   // Default expand all tags on initial load
   if (data.paths) {
@@ -681,6 +711,7 @@ watch(swaggerSourceType, () => {
           <span class="text-slate-500 dark:text-slate-400">API Host:</span>
           <input
             v-model="apiServerUrl"
+            @input="onApiHostInput"
             type="text"
             placeholder="http://localhost:8080"
             class="px-2 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded text-xs w-48 font-mono focus:outline-none focus:border-indigo-500 text-slate-800 dark:text-slate-100"
