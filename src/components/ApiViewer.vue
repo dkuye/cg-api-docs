@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   resolveSchemaToTree,
   generateMockFromSchema,
+  generateSchemaJsonRepresentation,
   type SchemaField
 } from '../utils/swaggerParser'
 
@@ -495,6 +496,12 @@ function removeGlobalHeader(index: number) {
 function getResponseSchemaTree(schema: any) {
   if (!schema || !swaggerDoc.value) return null
   return resolveSchemaToTree(schema, swaggerDoc.value.definitions)
+}
+
+function getResponseSchemaJson(schema: any) {
+  if (!schema || !swaggerDoc.value) return ''
+  const representation = generateSchemaJsonRepresentation(schema, swaggerDoc.value.definitions)
+  return JSON.stringify(representation, null, 2)
 }
 
 // Clipboard copying
@@ -1194,87 +1201,11 @@ watch(swaggerSourceType, () => {
                   <span class="text-xs font-bold text-slate-800 dark:text-white">{{ respDetails.description || 'Response details' }}</span>
                 </div>
 
-                <!-- Tree view schema for the response -->
-                <div v-if="respDetails.schema" class="mt-3 bg-white dark:bg-slate-905 border border-slate-100 dark:border-slate-800 rounded-xl p-3">
-                  <div class="text-2xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2 font-mono">Response Payload Model Schema</div>
-                  <div class="overflow-x-auto text-xs font-mono text-slate-800">
-                    <!-- Recursive rendering of tree schema -->
-                    <table class="w-full text-left border-collapse">
-                      <thead>
-                        <tr class="border-b border-slate-100 dark:border-slate-800 text-2xs text-slate-400 dark:text-slate-505 font-bold uppercase font-mono">
-                          <th class="py-1.5 px-2">Field Name</th>
-                          <th class="py-1.5 px-2">Type</th>
-                          <th class="py-1.5 px-2">Required</th>
-                          <th class="py-1.5 px-2">Description</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <!-- Display fields list -->
-                        <tr
-                          v-for="field in [getResponseSchemaTree(respDetails.schema)]"
-                          :key="field?.name"
-                          class="align-top border-b last:border-0 border-slate-50 dark:border-slate-800 text-2xs"
-                        >
-                          <td colspan="4" class="py-2">
-                            <!-- Recursive Component inline rendering -->
-                            <div class="space-y-2">
-                              <!-- Object Type root details -->
-                              <div v-if="field?.properties" class="pl-2 space-y-1">
-                                <div class="font-bold text-indigo-600 dark:text-indigo-400 select-all" v-if="field.ref">
-                                  Definition: {{ field.ref }}
-                                </div>
-                                <div v-for="prop in field.properties" :key="prop.name" class="flex flex-col py-1.5 border-b border-slate-50 dark:border-slate-800 last:border-0 pl-1">
-                                  <div class="flex items-center flex-wrap gap-2 text-2xs">
-                                    <span class="font-bold text-slate-700 dark:text-slate-300 select-all">{{ prop.name }}</span>
-                                    <span class="px-1 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded text-3xs font-bold lowercase">{{ prop.type }}</span>
-                                    <span v-if="prop.required" class="text-rose-500 font-bold font-sans">*</span>
-                                    <span class="text-slate-400 dark:text-slate-500 text-3xs flex-1 truncate max-w-sm select-all">{{ prop.description }}</span>
-                                  </div>
-                                  
-                                  <!-- Recursive properties visualization for objects inside objects -->
-                                  <div v-if="prop.properties" class="pl-4 mt-1 border-l border-slate-200 dark:border-slate-800 space-y-1">
-                                    <div v-for="subProp in prop.properties" :key="subProp.name" class="flex items-center gap-2 py-0.5 text-2xs">
-                                      <span class="font-semibold text-slate-600 dark:text-slate-350 select-all">{{ subProp.name }}</span>
-                                      <span class="px-1 py-0.1 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded text-3xs">{{ subProp.type }}</span>
-                                      <span v-if="subProp.required" class="text-rose-500 font-bold">*</span>
-                                      <span class="text-slate-400 dark:text-slate-500 text-3xs truncate select-all">{{ subProp.description }}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <!-- Array Type root details -->
-                              <div v-else-if="field?.items" class="pl-2 space-y-1">
-                                <div class="text-slate-500 dark:text-slate-400 font-bold">Array of items:</div>
-                                <div class="pl-3 border-l border-slate-200 dark:border-slate-800">
-                                  <div v-if="field.items.properties">
-                                    <div class="font-bold text-indigo-600 dark:text-indigo-400 text-2xs" v-if="field.items.ref">Definition: {{ field.items.ref }}</div>
-                                    <div v-for="prop in field.items.properties" :key="prop.name" class="flex items-center gap-2 py-1 text-2xs border-b border-slate-50 dark:border-slate-800 last:border-0">
-                                      <span class="font-bold text-slate-700 dark:text-slate-350 select-all">{{ prop.name }}</span>
-                                      <span class="px-1 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded text-3xs font-bold lowercase">{{ prop.type }}</span>
-                                      <span v-if="prop.required" class="text-rose-500 font-bold">*</span>
-                                      <span class="text-slate-400 dark:text-slate-550 text-3xs select-all">{{ prop.description }}</span>
-                                    </div>
-                                  </div>
-                                  <div v-else>
-                                    <span class="font-bold text-slate-700 dark:text-slate-350 select-all">{{ field.items.name }}</span>
-                                    <span class="px-1 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded text-3xs lowercase font-bold ml-2">{{ field.items.type }}</span>
-                                    <span class="text-slate-400 dark:text-slate-505 text-3xs ml-2 select-all">{{ field.items.description }}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <!-- Primitive Type root details -->
-                              <div v-else class="pl-2 flex items-center gap-2">
-                                <span class="font-semibold text-slate-600 dark:text-slate-350">Value Type:</span>
-                                <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-650 dark:text-slate-300 uppercase font-bold">{{ field?.type }}</span>
-                                <span class="text-slate-400 dark:text-slate-500 select-all">{{ field?.description }}</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                <!-- JSON expected response structure representation -->
+                <div v-if="respDetails.schema" class="mt-3 bg-white dark:bg-slate-905 border border-slate-100 dark:border-slate-800 rounded-xl p-4">
+                  <div class="text-2xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2.5 font-mono">Response Payload Model Schema</div>
+                  <div class="overflow-x-auto text-xs font-mono text-slate-800 dark:text-slate-200">
+                    <pre class="bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-100 dark:border-slate-850 select-all overflow-x-auto whitespace-pre"><code>{{ getResponseSchemaJson(respDetails.schema) }}</code></pre>
                   </div>
                 </div>
               </div>

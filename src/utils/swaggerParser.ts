@@ -105,6 +105,76 @@ export function generateMockFromSchema(
 }
 
 /**
+ * Recursively generates a JSON structure representation of the schema types.
+ */
+export function generateSchemaJsonRepresentation(
+  schema: any,
+  definitions: any,
+  visited = new Set<string>()
+): any {
+  if (!schema) return null;
+
+  // Resolve reference if present
+  if (schema.$ref) {
+    const refKey = schema.$ref;
+    if (visited.has(refKey)) {
+      return `[Circular: ${refKey.split('/').pop()}]`;
+    }
+    const resolved = resolveRef(refKey, definitions);
+    if (!resolved) return null;
+
+    const newVisited = new Set(visited);
+    newVisited.add(refKey);
+    return generateSchemaJsonRepresentation(resolved, definitions, newVisited);
+  }
+
+  // Handle allOf / anyOf / oneOf
+  if (schema.allOf && Array.isArray(schema.allOf)) {
+    let combined: any = {};
+    for (const sub of schema.allOf) {
+      const mock = generateSchemaJsonRepresentation(sub, definitions, visited);
+      if (mock && typeof mock === 'object') {
+        combined = { ...combined, ...mock };
+      }
+    }
+    return combined;
+  }
+
+  const type = schema.type;
+
+  if (type === 'object' || schema.properties) {
+    const mockObj: any = {};
+    const props = schema.properties || {};
+    for (const key of Object.keys(props)) {
+      mockObj[key] = generateSchemaJsonRepresentation(props[key], definitions, visited);
+    }
+    return mockObj;
+  }
+
+  if (type === 'array' || schema.items) {
+    const itemSchema = schema.items || {};
+    const mockItem = generateSchemaJsonRepresentation(itemSchema, definitions, visited);
+    return mockItem !== null ? [mockItem] : [];
+  }
+
+  // Primitive types
+  if (type === 'string') {
+    return 'string';
+  }
+
+  if (type === 'integer' || type === 'number') {
+    return 0;
+  }
+
+  if (type === 'boolean') {
+    return false;
+  }
+
+  // Default fallback
+  return type || 'any';
+}
+
+/**
  * Recursively parses a schema to build a tree of SchemaFields for visualization.
  * Prevents infinite loops.
  */
