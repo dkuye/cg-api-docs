@@ -56,7 +56,7 @@ const primitiveClass = computed(() => {
 </script>
 
 <template>
-  <div class="font-mono text-2xs md:text-xs leading-relaxed select-text inline-block align-top">
+  <div class="font-mono text-2xs md:text-xs leading-relaxed select-text inline-block align-top whitespace-nowrap">
     <!-- Primitive Type -->
     <span v-if="isPrimitive" :class="primitiveClass">
       {{ formattedValue }}<span v-if="!isLast" class="text-slate-400 dark:text-slate-600 font-sans mr-0.5">,</span>
@@ -94,7 +94,7 @@ const primitiveClass = computed(() => {
       <div v-show="isExpanded" class="pl-4 border-l border-slate-200/50 dark:border-slate-800 ml-1.5 mt-0.5 space-y-0.5">
         <!-- If Object -->
         <template v-if="isObject">
-          <div v-for="(key, index) in objectKeys" :key="key" class="flex items-start flex-wrap">
+          <div v-for="(key, index) in objectKeys" :key="key" class="flex items-start whitespace-nowrap">
             <span class="text-indigo-600 dark:text-indigo-400 font-semibold">"{{ key }}"</span>
             <span class="text-slate-400 dark:text-slate-600 mx-1 font-sans">:</span>
             <JsonFoldViewer
@@ -107,7 +107,7 @@ const primitiveClass = computed(() => {
 
         <!-- If Array -->
         <template v-else-if="isArray">
-          <div v-for="(item, index) in value" :key="index" class="flex items-start">
+          <div v-for="(item, index) in value" :key="index" class="flex items-start whitespace-nowrap">
             <JsonFoldViewer
               :value="item"
               :isLast="index === value.length - 1"
