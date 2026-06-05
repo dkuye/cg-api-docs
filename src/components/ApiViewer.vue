@@ -549,6 +549,46 @@ function copyToClipboard(text: string, id: string = 'global') {
   }, 2000)
 }
 
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const highlightRef = ref<HTMLPreElement | null>(null)
+
+function handleTextareaScroll() {
+  if (textareaRef.value && highlightRef.value) {
+    highlightRef.value.scrollTop = textareaRef.value.scrollTop
+    highlightRef.value.scrollLeft = textareaRef.value.scrollLeft
+  }
+}
+
+function highlightJsonSyntax(jsonStr: string) {
+  if (!jsonStr) return ''
+  let safeStr = jsonStr
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+
+  return safeStr.replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?/g,
+    (match) => {
+      let cls = 'text-slate-350 dark:text-slate-350'
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) {
+          cls = 'text-indigo-600 dark:text-indigo-400 font-semibold'
+          return `<span class="${cls}">${match.replace(/:$/, '')}</span><span class="text-slate-400 dark:text-slate-600 font-sans">:</span>`
+        } else {
+          cls = 'text-emerald-600 dark:text-emerald-400 font-semibold'
+        }
+      } else if (/true|false/.test(match)) {
+        cls = 'text-amber-600 dark:text-amber-400 font-bold'
+      } else if (/null/.test(match)) {
+        cls = 'text-slate-400 dark:text-slate-500 font-bold'
+      } else {
+        cls = 'text-blue-600 dark:text-blue-400 font-bold'
+      }
+      return `<span class="${cls}">${match}</span>`
+    }
+  )
+}
+
 // On Mount
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
@@ -1075,11 +1115,24 @@ watch(swaggerSourceType, () => {
                         Reset Mock JSON
                       </button>
                     </div>
-                    <textarea
-                      v-model="bodyParamText"
-                      rows="10"
-                      class="w-full p-3 bg-slate-900 dark:bg-slate-950 border border-slate-800 dark:border-slate-800 rounded-xl font-mono text-xs text-slate-100 focus:outline-none focus:border-indigo-500 leading-normal"
-                    ></textarea>
+                    <div class="relative w-full h-[260px] border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-900 dark:bg-slate-950">
+                      <!-- Syntax highlighted overlay -->
+                      <pre
+                        ref="highlightRef"
+                        class="absolute inset-0 p-3 pointer-events-none select-none overflow-hidden whitespace-pre font-mono text-xs leading-normal text-slate-100 border border-transparent bg-transparent"
+                        v-html="highlightJsonSyntax(bodyParamText)"
+                      ></pre>
+                      <!-- Transparent editable textarea -->
+                      <textarea
+                        ref="textareaRef"
+                        v-model="bodyParamText"
+                        @scroll="handleTextareaScroll"
+                        rows="10"
+                        class="absolute inset-0 w-full h-full p-3 bg-transparent text-transparent caret-indigo-500 dark:caret-indigo-400 border border-transparent rounded-xl font-mono text-xs leading-normal focus:outline-none focus:ring-1 focus:ring-indigo-500/30 overflow-auto whitespace-pre resize-none"
+                        style="-webkit-text-fill-color: transparent;"
+                        spellcheck="false"
+                      ></textarea>
+                    </div>
                   </div>
                 </div>
 
