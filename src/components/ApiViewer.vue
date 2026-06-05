@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import JsonFoldViewer from './JsonFoldViewer.vue'
 import {
   resolveSchemaToTree,
   generateMockFromSchema,
@@ -502,6 +503,20 @@ function getResponseSchemaJson(schema: any) {
   if (!schema || !swaggerDoc.value) return ''
   const representation = generateSchemaJsonRepresentation(schema, swaggerDoc.value.definitions)
   return JSON.stringify(representation, null, 2)
+}
+
+function getResponseSchemaObj(schema: any) {
+  if (!schema || !swaggerDoc.value) return null
+  return generateSchemaJsonRepresentation(schema, swaggerDoc.value.definitions)
+}
+
+function tryParseJson(val: any) {
+  if (typeof val !== 'string') return null
+  try {
+    return JSON.parse(val)
+  } catch (e) {
+    return null
+  }
 }
 
 // Clipboard copying
@@ -1151,7 +1166,12 @@ watch(swaggerSourceType, () => {
                     </div>
 
                     <!-- JSON Body Rendering -->
-                    <pre v-else-if="responseTab === 'body'" class="p-4 bg-slate-950 text-emerald-400 text-2xs leading-normal select-text font-mono h-full overflow-auto rounded-xl"><code>{{ requestResponse.body || 'No Response Body content' }}</code></pre>
+                    <div v-else-if="responseTab === 'body'" class="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl overflow-auto h-full text-2xs md:text-xs">
+                      <div v-if="tryParseJson(requestResponse.body)">
+                        <JsonFoldViewer :value="tryParseJson(requestResponse.body)" />
+                      </div>
+                      <pre v-else class="text-2xs leading-normal select-text font-mono whitespace-pre-wrap text-slate-700 dark:text-slate-350"><code>{{ requestResponse.body || 'No Response Body content' }}</code></pre>
+                    </div>
 
                     <!-- Headers Rendering -->
                     <div v-else-if="responseTab === 'headers'" class="p-3 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1 overflow-auto h-full text-2xs font-mono text-slate-700 dark:text-slate-300">
@@ -1204,8 +1224,8 @@ watch(swaggerSourceType, () => {
                 <!-- JSON expected response structure representation -->
                 <div v-if="respDetails.schema" class="mt-3 bg-white dark:bg-slate-905 border border-slate-100 dark:border-slate-800 rounded-xl p-4">
                   <div class="text-2xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2.5 font-mono">Response Payload Model Schema</div>
-                  <div class="overflow-x-auto text-xs font-mono text-slate-800 dark:text-slate-200">
-                    <pre class="bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-100 dark:border-slate-850 select-all overflow-x-auto whitespace-pre"><code>{{ getResponseSchemaJson(respDetails.schema) }}</code></pre>
+                  <div class="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-850 rounded-lg overflow-x-auto">
+                    <JsonFoldViewer :value="getResponseSchemaObj(respDetails.schema)" />
                   </div>
                 </div>
               </div>
