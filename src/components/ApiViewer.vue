@@ -520,12 +520,14 @@ function tryParseJson(val: any) {
 }
 
 // Clipboard copying
-const copySuccess = ref<boolean>(false)
-function copyToClipboard(text: string) {
+const copiedId = ref<string>('')
+function copyToClipboard(text: string, id: string = 'global') {
   navigator.clipboard.writeText(text)
-  copySuccess.value = true
+  copiedId.value = id
   setTimeout(() => {
-    copySuccess.value = false
+    if (copiedId.value === id) {
+      copiedId.value = ''
+    }
   }, 2000)
 }
 
@@ -1144,17 +1146,17 @@ watch(swaggerSourceType, () => {
                   <!-- Tab Panels -->
                   <div class="flex-1 overflow-auto rounded-xl relative min-h-0">
                     
-                    <!-- Copy to clipboard button -->
-                    <button
-                      v-if="requestResponse.body || requestResponse.curlCommand"
-                      @click="copyToClipboard(responseTab === 'body' ? requestResponse.body : (responseTab === 'headers' ? JSON.stringify(requestResponse.headers, null, 2) : requestResponse.curlCommand || ''))"
-                      class="absolute top-2 right-2 p-1.5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white rounded-md transition-all text-xs flex items-center gap-1 cursor-pointer z-5"
-                    >
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                      </svg>
-                      {{ copySuccess ? 'Copied!' : 'Copy' }}
-                    </button>
+                     <!-- Copy to clipboard button -->
+                     <button
+                       v-if="requestResponse.body || requestResponse.curlCommand"
+                       @click="copyToClipboard(responseTab === 'body' ? requestResponse.body : (responseTab === 'headers' ? JSON.stringify(requestResponse.headers, null, 2) : requestResponse.curlCommand || ''), 'exec-response')"
+                       class="absolute top-2 right-2 p-1.5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white rounded-md transition-all text-xs flex items-center gap-1 cursor-pointer z-5"
+                     >
+                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                       </svg>
+                       {{ copiedId === 'exec-response' ? 'Copied!' : 'Copy' }}
+                     </button>
 
                     <!-- Error Alert -->
                     <div v-if="requestResponse.error" class="bg-rose-50 border border-rose-100 text-rose-800 p-4 rounded-xl space-y-1">
@@ -1222,7 +1224,18 @@ watch(swaggerSourceType, () => {
                 </div>
 
                 <!-- JSON expected response structure representation -->
-                <div v-if="respDetails.schema" class="mt-3 bg-white dark:bg-slate-905 border border-slate-100 dark:border-slate-800 rounded-xl p-4">
+                <div v-if="respDetails.schema" class="mt-3 bg-white dark:bg-slate-905 border border-slate-100 dark:border-slate-800 rounded-xl p-4 relative">
+                  <!-- Copy Button -->
+                  <button
+                    @click="copyToClipboard(getResponseSchemaJson(respDetails.schema), 'spec-' + statusCode)"
+                    class="absolute top-3 right-3 p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-450 hover:text-slate-700 dark:hover:text-white rounded-md transition-all text-2xs flex items-center gap-1 cursor-pointer z-5"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    {{ copiedId === 'spec-' + statusCode ? 'Copied!' : 'Copy' }}
+                  </button>
+
                   <div class="text-2xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2.5 font-mono">Response Payload Model Schema</div>
                   <div class="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-850 rounded-lg overflow-x-auto">
                     <JsonFoldViewer :value="getResponseSchemaObj(respDetails.schema)" />
