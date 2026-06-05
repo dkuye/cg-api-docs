@@ -1057,9 +1057,14 @@ watch(() => props.url, () => {
                 </svg>
               </div>
               <div class="flex-1">
-                <h4 class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">HTTP Methods Breakdown</h4>
-                <div class="flex gap-2 mt-1.5">
-                  <span v-for="(cnt, method) in apiStats.methods" :key="method" class="text-2xs font-mono font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-650 dark:text-slate-350">
+                <h4 class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">HTTP Methods Breakdown</h4>
+                <div class="flex flex-wrap gap-2 mt-1.5">
+                  <span
+                    v-for="(cnt, method) in apiStats.methods"
+                    :key="method"
+                    class="text-2xs font-mono font-bold px-2 py-0.5 rounded text-white whitespace-nowrap shadow-sm"
+                    :class="getMethodColorClass(method)"
+                  >
                     {{ method }}: {{ cnt }}
                   </span>
                 </div>
