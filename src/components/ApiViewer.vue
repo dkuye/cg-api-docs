@@ -208,6 +208,15 @@ function processLoadedDoc(data: any) {
   }
 }
 
+function handleFileParamChange(event: Event, paramName: string) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    paramValues.value[paramName] = target.files[0]
+  } else {
+    paramValues.value[paramName] = undefined
+  }
+}
+
 // Handle file upload
 function handleFileUpload(event: Event) {
   const target = event.target as HTMLInputElement
@@ -482,9 +491,50 @@ async function runRequest() {
 
   // 2. Assemble Body
   let bodyData: any = null
-  const bodyParam = details.parameters?.find((p: any) => p.in === 'body')
-  if (bodyParam) {
-    bodyData = bodyParamText.value
+  const formDataParams = details.parameters?.filter((p: any) => p.in === 'formData') || []
+
+  if (formDataParams.length > 0) {
+    const consumes = details.consumes || []
+    const isMultipart = consumes.includes('multipart/form-data')
+
+    if (isMultipart) {
+      if (headers.has('content-type')) {
+        headers.delete('content-type')
+      }
+      const form = new FormData()
+      formDataParams.forEach((param: any) => {
+        const val = paramValues.value[param.name]
+        if (val !== undefined && val !== null && val !== '') {
+          if (val instanceof File) {
+            form.append(param.name, val)
+          } else {
+            form.append(param.name, String(val))
+          }
+        }
+      })
+      bodyData = form
+    } else {
+      // Default to application/x-www-form-urlencoded
+      if (!headers.has('content-type')) {
+        headers.set('content-type', 'application/x-www-form-urlencoded')
+      }
+      const formBody = new URLSearchParams()
+      formDataParams.forEach((param: any) => {
+        const val = paramValues.value[param.name]
+        if (val !== undefined && val !== null && val !== '') {
+          formBody.append(param.name, String(val))
+        }
+      })
+      bodyData = formBody.toString()
+    }
+  } else {
+    const bodyParam = details.parameters?.find((p: any) => p.in === 'body')
+    if (bodyParam) {
+      bodyData = bodyParamText.value
+      if (!headers.has('content-type')) {
+        headers.set('content-type', 'application/json')
+      }
+    }
   }
 
   // Handle Query String
@@ -497,9 +547,18 @@ async function runRequest() {
     curl += ` \\\n  -H "${k}: ${v}"`
   })
   if (bodyData && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    // Escape single quotes for bash safe rendering
-    const escapedBody = bodyData.replace(/'/g, "'\\''")
-    curl += ` \\\n  -d '${escapedBody}'`
+    if (typeof bodyData === 'string') {
+      const escapedBody = bodyData.replace(/'/g, "'\\''")
+      curl += ` \\\n  -d '${escapedBody}'`
+    } else if (bodyData instanceof FormData) {
+      for (const [key, val] of bodyData.entries()) {
+        if (val instanceof File) {
+          curl += ` \\\n  -F "${key}=@${val.name}"`
+        } else {
+          curl += ` \\\n  -F "${key}=${val}"`
+        }
+      }
+    }
   }
 
   const startTime = performance.now()
@@ -1173,6 +1232,14 @@ watch(() => props.url, () => {
                       <option :value="true">true</option>
                       <option :value="false">false</option>
                     </select>
+
+                    <input
+                      v-else-if="param.type === 'file'"
+                      type="file"
+                      @change="(e) => handleFileParamChange(e, param.name)"
+                      class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono focus:outline-none focus:border-indigo-500 text-slate-800 dark:text-slate-100 cursor-pointer"
+                      :class="param.required && !paramValues[param.name] ? 'border-amber-200 dark:border-amber-900/60' : ''"
+                    />
 
                     <input
                       v-else
