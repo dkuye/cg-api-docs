@@ -105,11 +105,12 @@ const methodsList = ['ALL', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH']
 // --- Helper Functions ---
 function getMethodColorClass(method: string) {
   const m = method.toUpperCase()
-  if (m === 'GET') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-  if (m === 'POST') return 'bg-blue-50 text-blue-700 border-blue-200'
-  if (m === 'PUT') return 'bg-amber-50 text-amber-700 border-amber-200'
-  if (m === 'DELETE') return 'bg-rose-50 text-rose-700 border-rose-200'
-  return 'bg-slate-50 text-slate-700 border-slate-200'
+  if (m === 'GET') return 'bg-emerald-600 text-white'
+  if (m === 'POST') return 'bg-blue-600 text-white'
+  if (m === 'PUT') return 'bg-amber-500 text-white'
+  if (m === 'DELETE') return 'bg-rose-600 text-white'
+  if (m === 'PATCH') return 'bg-purple-600 text-white'
+  return 'bg-slate-500 text-white'
 }
 
 function getMethodBadgeClass(method: string) {
@@ -668,7 +669,7 @@ watch(swaggerSourceType, () => {
             >
               <!-- Method badge -->
               <span
-                class="w-14 text-center px-1.5 py-0.5 rounded text-2xs font-extrabold border shrink-0 tracking-widest uppercase mr-3 font-mono transition-colors"
+                class="w-14 text-center px-1.5 py-0.5 rounded text-2xs font-black shrink-0 tracking-widest uppercase mr-3 font-mono transition-colors"
                 :class="getMethodColorClass(ep.method)"
               >
                 {{ ep.method }}
