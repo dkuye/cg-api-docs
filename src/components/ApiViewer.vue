@@ -155,7 +155,7 @@ async function loadSwaggerDoc() {
 
 function processLoadedDoc(data: any) {
   swaggerDoc.value = data
-  
+
   // Set default API Server URL from host and basePath if no custom override exists
   const savedCustomUrl = localStorage.getItem('customApiServerUrl')
   if (savedCustomUrl) {
@@ -384,7 +384,7 @@ async function runRequest() {
 
   // 1. Construct Headers
   const headers = new Headers()
-  
+
   // Apply Global Active Headers
   globalHeaders.value.forEach(h => {
     if (h.enabled && h.key.trim() && h.value.trim()) {
@@ -607,13 +607,13 @@ watch(swaggerSourceType, () => {
 
 <template>
   <div class="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-200">
-    
+
     <!-- LEFT SIDEBAR -->
     <aside class="flex flex-col w-80 md:w-96 border-r border-slate-200 dark:border-slate-800 bg-slate-900 text-slate-300 select-none overflow-hidden shrink-0">
-      
+
       <!-- Logo / Title -->
-      <div 
-        @click="clearSelection" 
+      <div
+        @click="clearSelection"
         class="flex items-center gap-3 px-6 py-5 bg-slate-950 border-b border-slate-800 cursor-pointer hover:bg-slate-900/40 transition-colors"
       >
         <div class="flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-500 text-white shadow-md shadow-indigo-500/20">
@@ -622,8 +622,8 @@ watch(swaggerSourceType, () => {
           </svg>
         </div>
         <div>
-          <h1 class="text-base font-bold text-white tracking-tight leading-none">Swagger Viewer</h1>
-          <p class="text-xs text-slate-400 mt-1 font-mono">v2.0 Reader</p>
+          <h1 class="text-base font-bold text-white tracking-tight leading-none">CG API Docs</h1>
+          <p class="text-xs text-slate-400 mt-1 font-mono">Swagger v2.0 Viewer</p>
         </div>
       </div>
 
@@ -730,7 +730,7 @@ watch(swaggerSourceType, () => {
 
     <!-- RIGHT CONTENT AREA -->
     <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
-      
+
       <!-- TOP BAR -->
       <header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4 md-elevation-1 z-10 shrink-0 transition-colors duration-200">
         <!-- Brand / Document Info -->
@@ -752,7 +752,7 @@ watch(swaggerSourceType, () => {
 
         <!-- Inputs / Actions -->
         <div class="flex items-center gap-3">
-          
+
           <!-- Theme Toggle Button -->
           <button
             @click="toggleTheme"
@@ -837,7 +837,7 @@ watch(swaggerSourceType, () => {
           </svg>
           Global Request Headers
         </div>
-        
+
         <!-- Base URL Override -->
         <div class="flex items-center gap-2 text-xs border-r border-slate-200 dark:border-slate-800 pr-4">
           <span class="text-slate-500 dark:text-slate-400">API Host:</span>
@@ -859,7 +859,7 @@ watch(swaggerSourceType, () => {
           >
             <!-- Checkbox toggle -->
             <input type="checkbox" v-model="header.enabled" class="rounded text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400 w-3 h-3 cursor-pointer" />
-            
+
             <input
               v-model="header.key"
               type="text"
@@ -873,7 +873,7 @@ watch(swaggerSourceType, () => {
               placeholder="value"
               class="bg-transparent border-none p-0 w-32 text-2xs focus:outline-none text-slate-600 dark:text-slate-400"
             />
-            
+
             <button
               @click="removeGlobalHeader(idx)"
               class="text-slate-400 hover:text-rose-500 transition-colors ml-1"
@@ -930,7 +930,7 @@ watch(swaggerSourceType, () => {
                 API Version {{ swaggerDoc.info.version }}
               </span>
             </div>
-            
+
             <p class="text-sm text-slate-600 dark:text-slate-350 leading-relaxed whitespace-pre-wrap">
               {{ swaggerDoc.info.description || 'No description provided.' }}
             </p>
@@ -992,7 +992,7 @@ watch(swaggerSourceType, () => {
 
         <!-- ENDPOINT DETAILS SCREEN -->
         <div v-if="selectedEndpoint" class="max-w-5xl mx-auto space-y-6">
-          
+
           <!-- Endpoint Header Card -->
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md-elevation-1 space-y-4 transition-colors duration-200">
             <div class="flex flex-wrap items-center gap-3">
@@ -1003,7 +1003,7 @@ watch(swaggerSourceType, () => {
                 {{ selectedEndpoint.path }}
               </h3>
             </div>
-            
+
             <div class="space-y-1.5">
               <h4 class="text-base font-extrabold text-slate-800 dark:text-white">
                 {{ selectedEndpoint.details.summary || 'Endpoint Details' }}
@@ -1037,7 +1037,7 @@ watch(swaggerSourceType, () => {
 
           <!-- Layout Split: Left (Parameters Form), Right (Runner Response) -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
+
             <!-- Parameters Card (Column span 7) -->
             <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md-elevation-1 space-y-6 transition-colors duration-200">
               <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -1063,9 +1063,9 @@ watch(swaggerSourceType, () => {
 
               <!-- Parameter Form Fields -->
               <div v-if="selectedEndpoint.details.parameters && selectedEndpoint.details.parameters.length" class="space-y-5">
-                
+
                 <div v-for="param in selectedEndpoint.details.parameters" :key="param.name" class="space-y-1.5">
-                  
+
                   <div class="flex items-center justify-between text-xs font-mono">
                     <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                       {{ param.name }}
@@ -1090,7 +1090,7 @@ watch(swaggerSourceType, () => {
                       <option :value="true">true</option>
                       <option :value="false">false</option>
                     </select>
-                    
+
                     <input
                       v-else
                       v-model="paramValues[param.name]"
@@ -1144,7 +1144,7 @@ watch(swaggerSourceType, () => {
 
             <!-- Runner Results Card (Column span 5) -->
             <div class="lg:col-span-5 space-y-6">
-              
+
               <!-- Response Block -->
               <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md-elevation-1 space-y-4 min-h-[300px] flex flex-col transition-colors duration-200">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -1154,7 +1154,7 @@ watch(swaggerSourceType, () => {
                     </svg>
                     Execution Response
                   </h4>
-                  
+
                   <span v-if="requestResponse" class="font-mono text-2xs font-bold text-slate-400 flex items-center gap-2">
                     <!-- Status Badge -->
                     <span
@@ -1188,7 +1188,7 @@ watch(swaggerSourceType, () => {
 
                 <!-- Response Renders -->
                 <div v-else class="flex-1 flex flex-col overflow-hidden min-h-0 space-y-3">
-                  
+
                   <!-- Response navigation tabs -->
                   <div class="flex border-b border-slate-100 dark:border-slate-800 text-xs shrink-0 font-mono">
                     <button
@@ -1216,7 +1216,7 @@ watch(swaggerSourceType, () => {
 
                   <!-- Tab Panels -->
                   <div class="flex-1 overflow-auto rounded-xl relative min-h-0">
-                    
+
                      <!-- Copy to clipboard button -->
                      <button
                        v-if="requestResponse.body || requestResponse.curlCommand"
