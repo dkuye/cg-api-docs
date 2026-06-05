@@ -9,9 +9,30 @@ import {
   type SchemaField
 } from '../utils/swaggerParser'
 
+const props = defineProps<{
+  url?: string
+}>()
+
 // --- State ---
-const route = useRoute()
-const router = useRouter()
+const route = tryUseRoute()
+const router = tryUseRouter()
+
+function tryUseRoute() {
+  try {
+    const r = useRoute()
+    return r && r.query ? r : null
+  } catch (e) {
+    return null
+  }
+}
+
+function tryUseRouter() {
+  try {
+    return useRouter() || null
+  } catch (e) {
+    return null
+  }
+}
 const swaggerDoc = ref<any>(null)
 const isLoadingDoc = ref<boolean>(false)
 const docError = ref<string>('')
@@ -132,7 +153,11 @@ async function loadSwaggerDoc() {
   try {
     let docData: any = null
 
-    if (swaggerSourceType.value === 'default') {
+    if (props.url) {
+      const res = await fetch(props.url)
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+      docData = await res.json()
+    } else if (swaggerSourceType.value === 'default') {
       const res = await fetch('/swagger.json')
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
       docData = await res.json()
@@ -287,6 +312,30 @@ function toggleTag(tag: string) {
   expandedTags.value[tag] = !expandedTags.value[tag]
 }
 
+const activePathQuery = ref<string | null>(null)
+const activeMethodQuery = ref<string | null>(null)
+
+function syncQueryParams() {
+  if (route && route.query) {
+    activePathQuery.value = route.query.path as string | null
+    activeMethodQuery.value = route.query.method as string | null
+  } else if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    activePathQuery.value = params.get('path')
+    activeMethodQuery.value = params.get('method')
+  }
+}
+
+if (route && route.query) {
+  watch([() => route.query.path, () => route.query.method], () => {
+    syncQueryParams()
+  })
+} else {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('popstate', syncQueryParams)
+  }
+}
+
 let isSettingSelectedEndpoint = false
 
 function selectEndpoint(ep: { path: string; method: string; details: any }) {
@@ -319,15 +368,26 @@ function selectEndpoint(ep: { path: string; method: string; details: any }) {
   }
 
   // Update Route Query Parameters
-  if (route.query.path !== ep.path || route.query.method !== ep.method) {
-    router.push({
-      path: route.path,
-      query: {
-        ...route.query,
-        path: ep.path,
-        method: ep.method
-      }
-    })
+  if (route && router) {
+    if (route.query.path !== ep.path || route.query.method !== ep.method) {
+      router.push({
+        path: route.path,
+        query: {
+          ...route.query,
+          path: ep.path,
+          method: ep.method
+        }
+      })
+    }
+  } else if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('path') !== ep.path || params.get('method') !== ep.method) {
+      params.set('path', ep.path)
+      params.set('method', ep.method)
+      const newUrl = `${window.location.pathname}?${params.toString()}`
+      window.history.pushState({}, '', newUrl)
+      syncQueryParams()
+    }
   }
   isSettingSelectedEndpoint = false
 }
@@ -341,7 +401,7 @@ watch(bodyParamText, (newVal) => {
 }, { flush: 'sync' })
 
 // Synchronize selected endpoint with route query params
-watch([parsedEndpoints, () => route.query.path, () => route.query.method], ([endpoints, path, method]) => {
+watch([parsedEndpoints, activePathQuery, activeMethodQuery], ([endpoints, path, method]) => {
   if (endpoints && endpoints.length && path && method) {
     const matched = endpoints.find(
       (ep) => ep.path === path && ep.method === String(method).toUpperCase()
@@ -362,14 +422,23 @@ watch([parsedEndpoints, () => route.query.path, () => route.query.method], ([end
 
 function clearSelection() {
   selectedEndpoint.value = null
-  router.push({
-    path: route.path,
-    query: {
-      ...route.query,
-      path: undefined,
-      method: undefined
-    }
-  })
+  if (route && router) {
+    router.push({
+      path: route.path,
+      query: {
+        ...route.query,
+        path: undefined,
+        method: undefined
+      }
+    })
+  } else if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    params.delete('path')
+    params.delete('method')
+    const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`
+    window.history.pushState({}, '', newUrl)
+    syncQueryParams()
+  }
 }
 
 // --- Request Execution Runner ---
@@ -593,6 +662,7 @@ function highlightJsonSyntax(jsonStr: string) {
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
   theme.value = savedTheme || 'dark'
+  syncQueryParams()
   loadSwaggerDoc()
 })
 
@@ -602,6 +672,11 @@ watch(swaggerSourceType, () => {
     swaggerUrlInput.value = '/swagger.json'
     loadSwaggerDoc()
   }
+})
+
+// Watch props.url trigger
+watch(() => props.url, () => {
+  loadSwaggerDoc()
 })
 </script>
 
@@ -769,62 +844,65 @@ watch(swaggerSourceType, () => {
             </svg>
           </button>
 
-          <!-- Source selection dropdown -->
-          <div class="flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-xs border border-slate-200 dark:border-slate-700 transition-colors">
-            <button
-              @click="swaggerSourceType = 'default'"
-              class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer"
-              :class="swaggerSourceType === 'default'
-                ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
-            >
-              Default
-            </button>
-            <button
-              @click="swaggerSourceType = 'url'"
-              class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer"
-              :class="swaggerSourceType === 'url'
-                ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
-            >
-              URL
-            </button>
-            <button
-              @click="swaggerSourceType = 'upload'"
-              class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer"
-              :class="swaggerSourceType === 'upload'
-                ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
-            >
-              Upload
-            </button>
-          </div>
+          <!-- Source selection and loading controls (only if url is not locked by prop) -->
+          <template v-if="!props.url">
+            <!-- Source selection dropdown -->
+            <div class="flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-xs border border-slate-200 dark:border-slate-700 transition-colors">
+              <button
+                @click="swaggerSourceType = 'default'"
+                class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer"
+                :class="swaggerSourceType === 'default'
+                  ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+              >
+                Default
+              </button>
+              <button
+                @click="swaggerSourceType = 'url'"
+                class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer"
+                :class="swaggerSourceType === 'url'
+                  ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+              >
+                URL
+              </button>
+              <button
+                @click="swaggerSourceType = 'upload'"
+                class="px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer"
+                :class="swaggerSourceType === 'upload'
+                  ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-white shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+              >
+                Upload
+              </button>
+            </div>
 
-          <!-- Dynamic Source Controls -->
-          <div v-if="swaggerSourceType === 'url'" class="flex items-center gap-2">
-            <input
-              v-model="swaggerUrlInput"
-              type="text"
-              placeholder="https://example.com/swagger.json"
-              class="px-3 py-1.5 bg-slate-50 dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg text-xs w-48 focus:outline-none focus:border-indigo-500 text-slate-800 dark:text-slate-100"
-            />
-            <button
-              @click="loadSwaggerDoc"
-              class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
-            >
-              Load
-            </button>
-          </div>
+            <!-- Dynamic Source Controls -->
+            <div v-if="swaggerSourceType === 'url'" class="flex items-center gap-2">
+              <input
+                v-model="swaggerUrlInput"
+                type="text"
+                placeholder="https://example.com/swagger.json"
+                class="px-3 py-1.5 bg-slate-50 dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg text-xs w-48 focus:outline-none focus:border-indigo-500 text-slate-800 dark:text-slate-100"
+              />
+              <button
+                @click="loadSwaggerDoc"
+                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+              >
+                Load
+              </button>
+            </div>
 
-          <div v-if="swaggerSourceType === 'upload'" class="relative">
-            <label class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-750 dark:text-slate-350 transition-colors">
-              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-              </svg>
-              {{ uploadedFileName || 'Choose File' }}
-              <input type="file" accept=".json" @change="handleFileUpload" class="hidden" />
-            </label>
-          </div>
+            <div v-if="swaggerSourceType === 'upload'" class="relative">
+              <label class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-750 dark:text-slate-350 transition-colors">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                {{ uploadedFileName || 'Choose File' }}
+                <input type="file" accept=".json" @change="handleFileUpload" class="hidden" />
+              </label>
+            </div>
+          </template>
 
         </div>
       </header>
