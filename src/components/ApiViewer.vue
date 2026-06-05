@@ -286,7 +286,10 @@ function toggleTag(tag: string) {
   expandedTags.value[tag] = !expandedTags.value[tag]
 }
 
+let isSettingSelectedEndpoint = false
+
 function selectEndpoint(ep: { path: string; method: string; details: any }) {
+  isSettingSelectedEndpoint = true
   selectedEndpoint.value = ep
   requestResponse.value = null
   paramValues.value = {}
@@ -297,8 +300,13 @@ function selectEndpoint(ep: { path: string; method: string; details: any }) {
     ep.details.parameters.forEach((param: any) => {
       // Setup mock / default values
       if (param.in === 'body') {
-        const mockObj = generateMockFromSchema(param.schema, swaggerDoc.value.definitions)
-        bodyParamText.value = mockObj ? JSON.stringify(mockObj, null, 2) : '{}'
+        const savedBody = localStorage.getItem(`api_docs_body_${ep.path}_${ep.method}`)
+        if (savedBody !== null) {
+          bodyParamText.value = savedBody
+        } else {
+          const mockObj = generateMockFromSchema(param.schema, swaggerDoc.value.definitions)
+          bodyParamText.value = mockObj ? JSON.stringify(mockObj, null, 2) : '{}'
+        }
       } else {
         let defVal = param.default !== undefined ? param.default : ''
         if (param.type === 'boolean') {
@@ -320,7 +328,16 @@ function selectEndpoint(ep: { path: string; method: string; details: any }) {
       }
     })
   }
+  isSettingSelectedEndpoint = false
 }
+
+// Watch body text changes and persist to localStorage
+watch(bodyParamText, (newVal) => {
+  if (!isSettingSelectedEndpoint && selectedEndpoint.value) {
+    const { path, method } = selectedEndpoint.value
+    localStorage.setItem(`api_docs_body_${path}_${method}`, newVal)
+  }
+}, { flush: 'sync' })
 
 // Synchronize selected endpoint with route query params
 watch([parsedEndpoints, () => route.query.path, () => route.query.method], ([endpoints, path, method]) => {
