@@ -143,6 +143,15 @@ function getMethodBadgeClass(method: string) {
   return 'bg-slate-500 text-white'
 }
 
+function getStatusCodeClass(codeStr: string) {
+  const code = parseInt(codeStr, 10)
+  if (isNaN(code)) return 'bg-slate-500 text-white'
+  if (code >= 200 && code < 300) return 'bg-emerald-600 text-white'
+  if (code >= 300 && code < 400) return 'bg-amber-500 text-white'
+  if (code >= 400) return 'bg-rose-600 text-white'
+  return 'bg-slate-500 text-white'
+}
+
 // --- Fetch & Parse Swagger Document ---
 async function loadSwaggerDoc() {
   isLoadingDoc.value = true
@@ -1435,9 +1444,7 @@ watch(() => props.url, () => {
                 <div class="flex items-center gap-3">
                   <span
                     class="px-2 py-0.5 rounded text-2xs font-mono font-black"
-                    :class="parseInt(String(statusCode)) >= 200 && parseInt(String(statusCode)) < 300
-                      ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-350'
-                      : 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-350'"
+                    :class="getStatusCodeClass(String(statusCode))"
                   >
                     {{ statusCode }}
                   </span>
