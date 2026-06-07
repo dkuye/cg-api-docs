@@ -1,42 +1,111 @@
-# vue-project
+# CG API Docs 🚀
 
-This template should help get you started developing with Vue 3 in Vite.
+**CG API Docs** is a portable, standalone, and high-performance Swagger (OpenAPI v2.0) documentation viewer built with **Vue 3**, **TypeScript**, and **TailwindCSS v4**. It is designed to be easily embedded as a native **Web Component** (`<cg-api-doc>`) in any web page or library, or run as a standalone documentation portal.
 
-## Recommended IDE Setup
+The application allows developers to browse API endpoints, inspect data schemas, generate mock payloads, and test live queries directly from their browser using a highly responsive, modern interface.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+---
 
-## Recommended Browser Setup
+## 🌟 Key Features & Capabilities
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+### 1. Zero-Dependency Web Component Integration
+- **Fully Self-Contained:** Bundles into a single JavaScript file (`cg-api-doc.js`).
+- **Dynamic CSS Injection:** Styling (`style.css`) is automatically injected into the head of the document at runtime. This avoids the need for external stylesheet references.
+- **Reactive Attribute Binding:** Supports the reactive `url` attribute. If you change the URL programmatically, the viewer instantly re-fetches and renders the new spec:
+  ```html
+  <cg-api-doc url="https://api.yoursite.com/swagger.json"></cg-api-doc>
+  ```
 
-## Type Support for `.vue` Imports in TS
+### 2. Live "Try It Out" Request Client
+- **Dynamic Inputs:** Automatically generates form controls for path, query, header, and body parameters based on the OpenAPI specification.
+- **Content-Type Handling:**
+  - Standard JSON request payloads (`application/json`).
+  - URL-encoded form data (`application/x-www-form-urlencoded`).
+  - File upload inputs (`multipart/form-data`) supporting native file selection.
+- **cURL Command Generation:** Real-time generation of reproducible cURL requests based on inputs.
+- **Response Metrics:** Monitors and displays HTTP status codes, execution duration (response time in milliseconds), and response headers.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### 3. Smart Mock & Schema Parser
+- **Recursive Resolution:** Parses local definition schemas (`$ref`) and resolves complex nested structures.
+- **Support for Combinators:** Gracefully handles combined properties (`allOf`, `anyOf`, and `oneOf`).
+- **Smart Heuristics:** Automatically populates fields with realistic sample data based on description clues (e.g., generating sample email, password, UUID, JWT, and phone number strings instead of generic fields).
+- **Circular Reference Protection:** Safe parsing cycle detector that prevents browser lockups on circular schema references.
 
-## Customize configuration
+### 4. Interactive JSON Responses & Schema Visualizer
+- **Custom JSON Tree Viewer (`JsonFoldViewer`):** Allows collapsible inspection of deep nested response payloads with syntax highlighting.
+- **Interactive Schema Trees:** Renders parameters and response definitions in a hierarchical, interactive tree representation showing types, required status, and descriptions.
+- **Clipboard Helpers:** One-click copying for response bodies, headers, and cURL commands.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 5. Premium UI/UX & Controls
+- **Dual Themes:** Clean Dark Mode (default) and Light Mode with persistence via `localStorage`.
+- **Global Headers Manager:** Setup credentials (like a Bearer `Authorization` token) or customized header keys that apply globally to all testing requests.
+- **Router-Free Navigation Sync:** Uses standard browser History API (`pushState`/`popstate`) to synchronize selection without relying on `vue-router`, ensuring clean standalone HTML page embedding.
+- **Sidebar Search & Filtering:** Collapsible tag-grouped sidebar navigation with real-time text filters and fast HTTP-method badges (GET, POST, PUT, DELETE, PATCH).
 
-## Project Setup
+---
 
-```sh
-pnpm install
+## 📂 Project Structure
+
+```bash
+├── public/                  # Static assets (default local swagger.json files)
+├── scripts/
+│   └── post-build.js        # Post-process script that injects CSS bundle inside JS bundle
+├── src/
+│   ├── assets/              # App styles (including Tailwind directives)
+│   ├── components/
+│   │   ├── ApiViewer.vue    # The primary API client & layout component (67KB)
+│   │   └── JsonFoldViewer.vue # Interactive JSON tree collapsible component
+│   ├── utils/
+│   │   └── swaggerParser.ts # OpenAPI parser, mock generator, and schema resolver
+│   ├── router/              # SPA router configuration (fallback mode)
+│   ├── main.ts              # Custom Web Component registration wrapper
+│   └── App.vue              # Main wrapper for local development
+├── vite.config.ts           # Bundler configuration (inline imports & build target config)
+├── package.json             # Build commands and dependency tracking
+└── tsconfig.json            # TypeScript type settings
 ```
 
-### Compile and Hot-Reload for Development
+---
 
-```sh
+## 🛠️ Build and Development Setup
+
+Ensure you have Node.js (>=20.19.0 or >=22.12.0) and **pnpm** (or npm/yarn) installed.
+
+### Development Mode (SPA Sandbox)
+Run a local development server with Vite:
+```bash
 pnpm dev
 ```
 
-### Type-Check, Compile and Minify for Production
-
-```sh
+### Production Build (Bundle Web Component)
+Compiles, builds, and post-processes the portable Custom Element bundle:
+```bash
 pnpm build
 ```
+During the build process, the following sequence occurs:
+1. `vue-tsc` runs type checks.
+2. `vite build` bundles the application and splits CSS into `style.css`.
+3. `scripts/post-build.js` reads the CSS file, injects it dynamically as a `<style>` injection routine into the bundled `cg-api-doc.js`, and removes the temporary CSS file.
+
+The resulting bundle is saved in the `/dist` directory.
+
+---
+
+## 🚀 Embedding the Web Component
+
+To use the standalone component in any project (whether React, Angular, Svelte, or vanilla HTML/PHP):
+
+1. **Include the Script Tag:**
+   ```html
+   <script src="path/to/dist/cg-api-doc.js"></script>
+   ```
+
+2. **Render the Custom Element:**
+   ```html
+   <cg-api-doc url="https://petstore.swagger.io/v2/swagger.json"></cg-api-doc>
+   ```
+
+### Custom Element Attributes
+| Attribute | Type | Description |
+| :--- | :--- | :--- |
+| `url` | `string` | The HTTP/HTTPS endpoint of your Swagger / OpenAPI 2.0 specification. If omitted, the viewer falls back to loading `/swagger.json` from the local origin. |
