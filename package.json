@@ -1,8 +1,14 @@
 {
   "name": "cg-api-docs",
   "version": "1.0.0",
-  "private": true,
   "type": "module",
+  "main": "dist/cg-api-doc.js",
+  "unpkg": "dist/cg-api-doc.js",
+  "jsdelivr": "dist/cg-api-doc.js",
+  "files": [
+    "dist",
+    "cg-api-doc.js"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",

@@ -25,6 +25,11 @@ if (fs.existsSync(cssPath) && fs.existsSync(jsPath)) {
   fs.writeFileSync(jsPath, injectionCode + jsCode, 'utf8')
   console.log('Successfully injected style.css into cg-api-doc.js!')
 
+  // Copy to root directory for direct root CDN access (e.g. unpkg.com/cg-api-docs/cg-api-doc.js)
+  const rootJsPath = path.join(__dirname, '../cg-api-doc.js')
+  fs.writeFileSync(rootJsPath, injectionCode + jsCode, 'utf8')
+  console.log('Copied bundle to root directory for direct root CDN access.')
+
   // Delete style.css since it is now bundled in the js file
   fs.unlinkSync(cssPath)
   console.log('Removed temporary style.css.')

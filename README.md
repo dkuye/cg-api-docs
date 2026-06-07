@@ -87,23 +87,56 @@ During the build process, the following sequence occurs:
 2. `vite build` bundles the application and splits CSS into `style.css`.
 3. `scripts/post-build.js` reads the CSS file, injects it dynamically as a `<style>` injection routine into the bundled `cg-api-doc.js`, and removes the temporary CSS file.
 
-The resulting bundle is saved in the `/dist` directory.
+The resulting bundle is saved in the `/dist` directory, and a copy is placed in the project root to support direct root CDN references.
 
 ---
 
 ## 🚀 Embedding the Web Component
 
-To use the standalone component in any project (whether React, Angular, Svelte, or vanilla HTML/PHP):
+To use the standalone component in any project (whether React, Angular, Svelte, or vanilla HTML/PHP), you can either host the build files locally or fetch them via a CDN.
+
+### Option A: CDN Hosting (unpkg or jsDelivr)
+
+You can load the script directly from CDN providers without hosting it yourself:
+
+#### 1. unpkg CDN
+- **Direct Root Access (Explicit version & file):**
+  ```html
+  <script src="https://unpkg.com/cg-api-docs@1.0.0/cg-api-doc.js"></script>
+  ```
+- **Auto-Redirect to Bundle (Resolves to `main` bundle):**
+  ```html
+  <script src="https://unpkg.com/cg-api-docs@1.0.0"></script>
+  ```
+- **Always Latest Version (Not recommended for production):**
+  ```html
+  <script src="https://unpkg.com/cg-api-docs/cg-api-doc.js"></script>
+  ```
+
+#### 2. jsDelivr CDN
+- **Direct Root Access:**
+  ```html
+  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.0/cg-api-doc.js"></script>
+  ```
+- **Auto-Redirect:**
+  ```html
+  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.0"></script>
+  ```
+
+### Option B: Local Hosting
 
 1. **Include the Script Tag:**
    ```html
-   <script src="path/to/dist/cg-api-doc.js"></script>
+   <script src="dist/cg-api-doc.js"></script>
    ```
 
-2. **Render the Custom Element:**
-   ```html
-   <cg-api-doc url="https://petstore.swagger.io/v2/swagger.json"></cg-api-doc>
-   ```
+### Render the Custom Element
+
+After loading the script via CDN or local path, render the custom tag in your HTML:
+
+```html
+<cg-api-doc url="https://petstore.swagger.io/v2/swagger.json"></cg-api-doc>
+```
 
 ### Custom Element Attributes
 | Attribute | Type | Description |
