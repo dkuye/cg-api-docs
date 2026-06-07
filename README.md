@@ -87,7 +87,7 @@ During the build process, the following sequence occurs:
 2. `vite build` bundles the application and splits CSS into `style.css`.
 3. `scripts/post-build.js` reads the CSS file, injects it dynamically as a `<style>` injection routine into the bundled `cg-api-doc.js`, and removes the temporary CSS file.
 
-The resulting bundle is saved in the `/dist` directory, and a copy is placed in the project root to support direct root CDN references.
+The resulting bundle is saved in the `/dist` directory.
 
 ---
 
@@ -100,23 +100,23 @@ To use the standalone component in any project (whether React, Angular, Svelte, 
 You can load the script directly from CDN providers without hosting it yourself:
 
 #### 1. unpkg CDN
-- **Direct Root Access (Explicit version & file):**
+- **Direct Access (Explicit version & path):**
   ```html
-  <script src="https://unpkg.com/cg-api-docs@1.0.0/cg-api-doc.js"></script>
+  <script src="https://unpkg.com/cg-api-docs@1.0.0/dist/cg-api-doc.js"></script>
   ```
-- **Auto-Redirect to Bundle (Resolves to `main` bundle):**
+- **Auto-Redirect to Bundle (Resolves to configured `main` bundle):**
   ```html
   <script src="https://unpkg.com/cg-api-docs@1.0.0"></script>
   ```
 - **Always Latest Version (Not recommended for production):**
   ```html
-  <script src="https://unpkg.com/cg-api-docs/cg-api-doc.js"></script>
+  <script src="https://unpkg.com/cg-api-docs/dist/cg-api-doc.js"></script>
   ```
 
 #### 2. jsDelivr CDN
-- **Direct Root Access:**
+- **Direct Access:**
   ```html
-  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.0/cg-api-doc.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.0/dist/cg-api-doc.js"></script>
   ```
 - **Auto-Redirect:**
   ```html

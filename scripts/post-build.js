@@ -25,21 +25,30 @@ if (fs.existsSync(cssPath) && fs.existsSync(jsPath)) {
   fs.writeFileSync(jsPath, injectionCode + jsCode, 'utf8')
   console.log('Successfully injected style.css into cg-api-doc.js!')
 
-  // Copy to root directory for direct root CDN access (e.g. unpkg.com/cg-api-docs/cg-api-doc.js)
-  const rootJsPath = path.join(__dirname, '../cg-api-doc.js')
-  fs.writeFileSync(rootJsPath, injectionCode + jsCode, 'utf8')
-  console.log('Copied bundle to root directory for direct root CDN access.')
-
   // Delete style.css since it is now bundled in the js file
-  fs.unlinkSync(cssPath)
-  console.log('Removed temporary style.css.')
+  if (fs.existsSync(cssPath)) {
+    fs.unlinkSync(cssPath)
+    console.log('Removed temporary style.css.')
+  }
 
-  // Clean up dist/index.html link stylesheet tag
-  if (fs.existsSync(htmlPath)) {
-    let htmlCode = fs.readFileSync(htmlPath, 'utf8')
-    htmlCode = htmlCode.replace(/<link[^>]*href="[^"]*style\.css"[^>]*>/gi, '')
-    fs.writeFileSync(htmlPath, htmlCode, 'utf8')
-    console.log('Cleaned up style.css reference from index.html.')
+  // Clean up all other files in the dist directory except cg-api-doc.js
+  if (fs.existsSync(distDir)) {
+    const files = fs.readdirSync(distDir)
+    for (const file of files) {
+      const filePath = path.join(distDir, file)
+      const stat = fs.statSync(filePath)
+      if (stat.isFile() && file !== 'cg-api-doc.js') {
+        fs.unlinkSync(filePath)
+        console.log(`Removed unneeded build file: dist/${file}`)
+      }
+    }
+  }
+
+  // Clean up the root-level cg-api-doc.js file if it exists from previous builds
+  const rootJsPath = path.join(__dirname, '../cg-api-doc.js')
+  if (fs.existsSync(rootJsPath)) {
+    fs.unlinkSync(rootJsPath)
+    console.log('Removed legacy root-level cg-api-doc.js.')
   }
 } else {
   console.error('Could not find dist/style.css or dist/cg-api-doc.js!')

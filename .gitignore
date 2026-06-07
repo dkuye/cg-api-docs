@@ -41,6 +41,4 @@ __screenshots__/
 # Public Swagger - for local development only
 public/swagger.json
 
-# Built bundle for root-level publication (CDN access)
-/cg-api-doc.js
 
