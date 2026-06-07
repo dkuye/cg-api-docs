@@ -102,11 +102,11 @@ You can load the script directly from CDN providers without hosting it yourself:
 #### 1. unpkg CDN
 - **Direct Access (Explicit version & path):**
   ```html
-  <script src="https://unpkg.com/cg-api-docs@1.0.0/dist/cg-api-doc.js"></script>
+  <script src="https://unpkg.com/cg-api-docs@1.0.1/dist/cg-api-doc.js"></script>
   ```
 - **Auto-Redirect to Bundle (Resolves to configured `main` bundle):**
   ```html
-  <script src="https://unpkg.com/cg-api-docs@1.0.0"></script>
+  <script src="https://unpkg.com/cg-api-docs@1.0.1"></script>
   ```
 - **Always Latest Version (Not recommended for production):**
   ```html
@@ -116,11 +116,11 @@ You can load the script directly from CDN providers without hosting it yourself:
 #### 2. jsDelivr CDN
 - **Direct Access:**
   ```html
-  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.0/dist/cg-api-doc.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.1/dist/cg-api-doc.js"></script>
   ```
 - **Auto-Redirect:**
   ```html
-  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cg-api-docs@1.0.1"></script>
   ```
 
 ### Option B: Local Hosting
