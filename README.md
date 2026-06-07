@@ -11,7 +11,7 @@ The package is hosted on **unpkg.com** and resolves all dependencies, templates,
 ### CDN Script URL
 - **Explicit Versioned URL (Recommended):**
   ```html
-  <script src="https://unpkg.com/cg-api-docs@1.0.1/dist/cg-api-doc.js"></script>
+  <script src="https://unpkg.com/cg-api-docs@1.0.2/dist/cg-api-doc.js"></script>
   ```
 - **Latest Version URL:**
   ```html
@@ -33,7 +33,7 @@ Here is a complete, standalone HTML file that imports and renders the API docume
   <title>Developer API Reference</title>
   
   <!-- 1. Load the CG API Docs script bundle from unpkg -->
-  <script src="https://unpkg.com/cg-api-docs@1.0.1/dist/cg-api-doc.js"></script>
+  <script src="https://unpkg.com/cg-api-docs@1.0.2/dist/cg-api-doc.js"></script>
 
   <style>
     /* Ensure the body expands to fill the full viewport */
