@@ -85,3 +85,30 @@ Once embedded, the viewer provides a rich interactive environment out-of-the-box
 - **JSON Tree Fold Viewer:** Formats JSON responses with nested, collapsible trees and syntax highlighting.
 - **Global Auth & Headers Control:** Define tokens (such as Bearer keys) globally to automatically authorize sandbox requests.
 - **Persistent Preferences:** Automatically saves Dark/Light mode selections and custom header settings inside `localStorage`.
+
+---
+
+## 🔒 Content Security Policy (CSP) Troubleshooting
+
+If users integrating this package receive a CSP violation error similar to:
+> *Loading the script 'https://unpkg.com/cg-api-docs@1.0.2/dist/cg-api-doc.js' violates the following Content Security Policy directive: "script-src 'self'"...*
+
+This is because the target website restricts execution of external third-party scripts. There are two ways to resolve this:
+
+### Option 1: Update Server CSP Headers
+If they want to continue loading the script directly from the CDN, they must modify their web server's HTTP response headers to whitelist `https://unpkg.com` within their `script-src` (or `script-src-elem`) directive:
+
+```http
+Content-Security-Policy: script-src 'self' https://unpkg.com;
+```
+
+### Option 2: Self-Host the Script (Zero CSP Config)
+If they cannot modify their CSP headers or have a strict, offline/enterprise security requirement, they can self-host the bundle:
+1. Download the built JavaScript bundle directly:
+   `https://unpkg.com/cg-api-docs@1.0.2/dist/cg-api-doc.js`
+2. Place the file inside their project's public static assets directory (e.g., `/public/js/cg-api-doc.js`).
+3. Load the script locally in their HTML document:
+   ```html
+   <script src="/js/cg-api-doc.js"></script>
+   ```
+   Because the file is now served from their own origin, it satisfies the `"script-src 'self'"` directive and loads perfectly.
