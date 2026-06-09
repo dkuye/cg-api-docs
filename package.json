@@ -1,10 +1,10 @@
 {
   "name": "cg-api-docs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
-  "main": "dist/cg-api-doc.js",
-  "unpkg": "dist/cg-api-doc.js",
-  "jsdelivr": "dist/cg-api-doc.js",
+  "main": "dist/cg-api-doc.min.js",
+  "unpkg": "dist/cg-api-doc.min.js",
+  "jsdelivr": "dist/cg-api-doc.min.js",
   "files": [
     "dist"
   ],
